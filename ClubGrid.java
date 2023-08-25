@@ -3,6 +3,8 @@
 
 package clubSimulation;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 //This class represents the club as a grid of GridBlocks
 public class ClubGrid {
 	private GridBlock [][] Blocks;
@@ -16,6 +18,9 @@ public class ClubGrid {
 	private final static int minY =5;//minimum y dimension
 	
 	private PeopleCounter counter;
+	private final static Object entrenceLock = new Object();
+	private final static ReentrantLock r = new ReentrantLock();
+
 	
 	ClubGrid(int x, int y, int [] exitBlocks,PeopleCounter c) throws InterruptedException {
 		if (x<minX) x=minX; //minimum x
@@ -30,7 +35,7 @@ public class ClubGrid {
 		}
 	
 	//initialise the grsi, creating all the GridBlocks
-	private  void initGrid(int []exitBlocks) throws InterruptedException {
+	private synchronized void initGrid(int []exitBlocks) throws InterruptedException {
 		for (int i=0;i<x;i++) {
 			for (int j=0;j<y;j++) {
 				boolean exit_block=false;
@@ -46,41 +51,47 @@ public class ClubGrid {
 		}
 	}
 	
-		public  int getMaxX() {
+		public synchronized int getMaxX() {
 		return x;
 	}
 	
-		public int getMaxY() {
-		return y;
+	public synchronized int getMaxY() {
+	return y;
 	}
 
-	public GridBlock whereEntrance() { 
+	public synchronized GridBlock whereEntrance() { 
 		return entrance;
 	}
 
-	public  boolean inGrid(int i, int j) {
+	public synchronized boolean inGrid(int i, int j) {
 		if ((i>=x) || (j>=y) ||(i<0) || (j<0)) 
 			return false;
 		return true;
 	}
 	
-	public  boolean inPatronArea(int i, int j) {
+	public synchronized boolean inPatronArea(int i, int j) {
 		if ((i>=x) || (j>bar_y) ||(i<0) || (j<0)) 
 			return false;
 		return true;
 	}
 	
-	public GridBlock enterClub(PeopleLocation myLocation) throws InterruptedException  {
+	public  GridBlock enterClub(PeopleLocation myLocation) throws InterruptedException  {
+		
 		counter.personArrived(); //add to counter of people waiting 
 
 		while (counter.overCapacity()) {
 			
 		}
+
+		synchronized(entrenceLock)
+		{ while(entrance.occupied()){entrenceLock.wait();} }
+			entrance.get(myLocation.getID());
+			counter.personEntered(); //add to counter
+			myLocation.setLocation(entrance);
+			myLocation.setInRoom(true);
+		synchronized(entrenceLock){ entrenceLock.notifyAll();}
+
 		
-		entrance.get(myLocation.getID());
-		counter.personEntered(); //add to counter
-		myLocation.setLocation(entrance);
-		myLocation.setInRoom(true);
 		return entrance;
 	}
 	
@@ -108,22 +119,26 @@ public class ClubGrid {
 			
 		currentBlock.release(); //must release current block
 		myLocation.setLocation(newBlock);
+
 		return newBlock;
 	} 
 	
 
-	public  void leaveClub(GridBlock currentBlock,PeopleLocation myLocation)   {
-			currentBlock.release();
-			counter.personLeft(); //add to counter
-			myLocation.setInRoom(false);
-			entrance.notifyAll();
+	public synchronized void leaveClub(GridBlock currentBlock,PeopleLocation myLocation)   {
+		currentBlock.release();
+		counter.personLeft(); //add to counter
+		myLocation.setInRoom(false);
+
+		synchronized(this){
+			this.notifyAll();
+		}
 	}
 
-	public GridBlock getExit() {
+	public synchronized GridBlock getExit() {
 		return exit;
 	}
 
-	public GridBlock whichBlock(int xPos, int yPos) {
+	public synchronized GridBlock whichBlock(int xPos, int yPos) {
 		if (inGrid(xPos,yPos)) {
 			return Blocks[xPos][yPos];
 		}
@@ -131,11 +146,11 @@ public class ClubGrid {
 		return null;
 	}
 	
-	public void setExit(GridBlock exit) {
+	public synchronized void setExit(GridBlock exit) {
 		this.exit = exit;
 	}
 
-	public int getBar_y() {
+	public synchronized int getBar_y() {
 		return bar_y;
 	}
 
