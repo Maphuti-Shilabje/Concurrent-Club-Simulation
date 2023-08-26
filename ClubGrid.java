@@ -18,10 +18,7 @@ public class ClubGrid {
 	private final static int minY =5;//minimum y dimension
 	
 	private PeopleCounter counter;
-	private final static Object entrenceLock = new Object();
-	private final static ReentrantLock r = new ReentrantLock();
 
-	
 	ClubGrid(int x, int y, int [] exitBlocks,PeopleCounter c) throws InterruptedException {
 		if (x<minX) x=minX; //minimum x
 		if (y<minY) y=minY; //minimum x
@@ -79,20 +76,23 @@ public class ClubGrid {
 		
 		counter.personArrived(); //add to counter of people waiting 
 
-		while (counter.overCapacity()) {
-			
-		}
+		/** This section lets the number of patrons allowed to enter the club to not be exceeded
+		 * patrons should wait outside until other patrons leave the club by notifying them
+		 */
+		synchronized(entrance){ while (counter.overCapacity()) { entrance.wait();}}
 
-		synchronized(entrenceLock)
-		{ while(entrance.occupied()){entrenceLock.wait();} }
-			entrance.get(myLocation.getID());
-			counter.personEntered(); //add to counter
-			myLocation.setLocation(entrance);
-			myLocation.setInRoom(true);
-		synchronized(entrenceLock){ entrenceLock.notifyAll();}
 
+		/**This section lets one thread to update the number of patrons inside the club 
+		 * it lets other patrons wait when there is another patron on the door
+		*/
+		synchronized(this){		
+		entrance.get(myLocation.getID());
+		counter.personEntered(); //add to counter
+		myLocation.setLocation(entrance);
+		myLocation.setInRoom(true);
 		
 		return entrance;
+		}
 	}
 	
 	
@@ -124,14 +124,13 @@ public class ClubGrid {
 	} 
 	
 
-	public synchronized void leaveClub(GridBlock currentBlock,PeopleLocation myLocation)   {
+	public void leaveClub(GridBlock currentBlock,PeopleLocation myLocation)   {
 		currentBlock.release();
 		counter.personLeft(); //add to counter
 		myLocation.setInRoom(false);
 
-		synchronized(this){
-			this.notifyAll();
-		}
+		// this notifies the threads that are waiting on the door that thre is space available
+		synchronized(entrance) { entrance.notifyAll();}
 	}
 
 	public synchronized GridBlock getExit() {
