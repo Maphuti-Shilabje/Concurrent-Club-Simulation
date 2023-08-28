@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class Clubgoer extends Thread {
-	
+	private final static Object lock = new Object();
 	public static ClubGrid club; //shared club
 
 	GridBlock currentBlock;
@@ -29,7 +29,7 @@ public class Clubgoer extends Thread {
 
 
 	
-	Clubgoer( int ID,  PeopleLocation loc,  int speed) {
+	Clubgoer( int ID, PeopleLocation loc,  int speed) {
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for customers
 		this.myLocation = loc; //for easy lookups
@@ -55,19 +55,30 @@ public class Clubgoer extends Thread {
 
 	//setter
 
+	static Thread t;
 	//check to see if user pressed pause button
-	private void checkPause() 
+	private synchronized void checkPause() 
 	{
-		synchronized(isPaused)
+		synchronized(lock)
 		{
-			while (!isPaused.get()) 
+			while (isPaused.get()) 
 			{
-				try{isPaused.wait();}
-				catch(InterruptedException e){System.out.println("Threads Failed to wait when the pause is pressed");}
+				try {lock.wait();} 
+				catch (InterruptedException e) {e.printStackTrace();}
 			}
 		}
+		
 	}
 	
+	public static synchronized void cont()
+	{
+		synchronized(lock)
+		{
+			lock.notifyAll();
+		}
+	}
+
+
 	/** 
 	 * threads will keep on checking if the start button is clicked.
 	 * starts all the threads when the start button is pressed */ 
@@ -82,7 +93,6 @@ public class Clubgoer extends Thread {
 			}
 		}
     }
-	
 	
 	//get drink at bar
 		private void getDrink() throws InterruptedException {

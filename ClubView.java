@@ -1,9 +1,8 @@
 package clubSimulation;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
-
+import java.awt.Font;
 import javax.swing.JPanel;
 
 public class ClubView extends JPanel implements Runnable {
@@ -18,7 +17,7 @@ public class ClubView extends JPanel implements Runnable {
 
 		ClubGrid grid; //shared grid
 		
-		ClubView(PeopleLocation[] custs,  ClubGrid grid,int []exits) { //constructor
+		ClubView(PeopleLocation[] custs, ClubGrid grid,int []exits) { //constructor
 			this.patronLocations=custs; 
 			noPatrons = custs.length;
 			this.grid = grid;
@@ -79,24 +78,24 @@ public class ClubView extends JPanel implements Runnable {
 			int x,y;
 			 g.setFont(new Font("Helvetica", Font.BOLD, hIncr/2));
 			 
-			 //barman should go here
-			 
+			//barman should go here
+		
+			
 			 //patrons
 		    for (int i=0;i<noPatrons;i++){	    	
-		    		if (patronLocations[i].inRoom()) {
-			    		g.setColor(patronLocations[i].getColor());
-			    		x= (patronLocations[i].getX()+1)*wIncr;
-			    		y= patronLocations[i].getY()*hIncr;
-			    		g.fillOval(x+wIncr/4, y+hIncr/4 , wIncr/2, hIncr/2);
-			    		g.drawString(patronLocations[i].getID()+"",x+wIncr/4, y+wIncr/4);
-		    		}
-		    		else {
-		    			//if( customerLocations[i].getArrived()) System.out.println("customer " + i+" waiting outside"); //debug
-		    		}
+				if (patronLocations[i].inRoom()) {
+					g.setColor(patronLocations[i].getColor());
+					x= (patronLocations[i].getX()+1)*wIncr;
+					y= patronLocations[i].getY()*hIncr;
+					g.fillOval(x+wIncr/4, y+hIncr/4 , wIncr/2, hIncr/2);
+					g.drawString(patronLocations[i].getID()+"",x+wIncr/4, y+wIncr/4);
+				}
+				else {
+					//if( customerLocations[i].getArrived()) System.out.println("customer " + i+" waiting outside"); //debug
+				}
 		    }
 		   }
 	
-  @Override
 		public void run() {
 			while (true) {
 				repaint();

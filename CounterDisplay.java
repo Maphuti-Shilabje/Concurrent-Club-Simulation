@@ -1,8 +1,8 @@
 package clubSimulation;
 
 import java.awt.Color;
-import javax.swing.JLabel;
 
+import javax.swing.JLabel;
 
 // Simple Thread class to update the display of a PeopleCounter object
 
@@ -20,7 +20,6 @@ public class CounterDisplay  implements Runnable {
         this.score=score;
     }
 	
- @Override
 	public void run() { //this thread just updates the display of the counters
         while (true) {
         	//test changes colour when at limit and over limit of people inside

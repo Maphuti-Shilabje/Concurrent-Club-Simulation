@@ -1,17 +1,15 @@
 //M. M. Kuttel 2023 mkuttel@gmail.com
 
 package clubSimulation;
+// the main class, starts all threads
+import javax.swing.*;
+
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-// the main class, starts all threads
 import java.util.Random;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClubSimulation {
 	static int noClubgoers=50;
@@ -20,7 +18,7 @@ public class ClubSimulation {
 	static int yLimit=400;
 	static int gridX=10; //number of x grids in club - default value if not provided on command line
 	static int gridY=10; //number of y grids in club - default value if not provided on command line
-	static int max=50; //max number of customers - default value if not provided on command line  
+	static int max=30; //max number of customers - default  value if not provided on command line  
 	
 	static Clubgoer[] patrons; // array for customer threads
 	static PeopleLocation [] peopleLocations;  //array to keep track of where customers are
@@ -33,6 +31,8 @@ public class ClubSimulation {
 	
 	private static int maxWait=1200; //for the slowest customer
 	private static int minWait=500; //for the fastest customer
+
+	static int counter=0;
 
 
 	public static void setupGUI(int frameX,int frameY,int [] exits) {
@@ -84,15 +84,23 @@ public class ClubSimulation {
 		    }
 		   });
 			
-		   
 			final JButton pauseB = new JButton("Pause ");;
 			
 			// add the listener to the jbutton to handle the "pressed" event
 			pauseB.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
-		    		Clubgoer.isPaused.set(true);
-					Clubgoer.isPaused.notifyAll();	
-		      }
+			
+		      public synchronized void actionPerformed(ActionEvent e) {
+				  counter++;
+
+				if (counter%2==1) {
+					Clubgoer.isPaused.set(true);
+				}
+				if (counter%2!=1)
+				{
+					Clubgoer.isPaused.set(false);
+					Clubgoer.cont();	
+				}
+				}
 		    });
 			
 		JButton endB = new JButton("Quit");
@@ -138,6 +146,7 @@ public class ClubSimulation {
 		patrons = new Clubgoer[noClubgoers];
 		
 		Random rand = new Random();
+		
 
         for (int i=0;i<noClubgoers;i++) {
         		peopleLocations[i]=new PeopleLocation(i);
@@ -161,8 +170,8 @@ public class ClubSimulation {
 		
       	for (int i=0;i<noClubgoers;i++) {
 			patrons[i].start();
+		}
 		
-	}
  	}
 
 }
