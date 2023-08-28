@@ -3,6 +3,7 @@
 
 package clubSimulation;
 
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 //This class represents the club as a grid of GridBlocks
@@ -18,13 +19,14 @@ public class ClubGrid {
 	private final static int minY =5;//minimum y dimension
 	
 	private PeopleCounter counter;
-
+	
 	ClubGrid(int x, int y, int [] exitBlocks,PeopleCounter c) throws InterruptedException {
 		if (x<minX) x=minX; //minimum x
 		if (y<minY) y=minY; //minimum x
 		this.x=x;
 		this.y=y;
 		this.bar_y=y-3;
+
 		Blocks = new GridBlock[x][y];
 		this.initGrid(exitBlocks);
 		entrance=Blocks[getMaxX()/2][0];
@@ -48,13 +50,14 @@ public class ClubGrid {
 		}
 	}
 	
-		public synchronized int getMaxX() {
-		return x;
+	public synchronized int getMaxX() {
+	return x;
 	}
 	
 	public synchronized int getMaxY() {
 	return y;
 	}
+
 
 	public synchronized GridBlock whereEntrance() { 
 		return entrance;
@@ -85,14 +88,17 @@ public class ClubGrid {
 		/**This section lets one thread to update the number of patrons inside the club 
 		 * it lets other patrons wait when there is another patron on the door
 		*/
-		synchronized(this){		
+
+		
+		synchronized(this){	
 		entrance.get(myLocation.getID());
 		counter.personEntered(); //add to counter
 		myLocation.setLocation(entrance);
 		myLocation.setInRoom(true);
-		
+			
 		return entrance;
 		}
+
 	}
 	
 	

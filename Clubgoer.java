@@ -83,6 +83,7 @@ public class Clubgoer extends Thread {
 		}
     }
 	
+	
 	//get drink at bar
 		private void getDrink() throws InterruptedException {
 			//FIX SO BARMAN GIVES THE DRINK AND IT IS NOT AUTOMATIC
